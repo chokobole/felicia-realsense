@@ -473,21 +473,15 @@ void RsCamera::OnFrame(rs2::frame frame) {
     }
 
     if (!pointcloud_callback_.is_null()) {
-      bool enable = false;
-      if (pointcloud_interval_.is_zero()) {
-        enable = true;
-      } else {
-        base::TimeDelta delta = timestamp - last_pointcloud_timestamp_;
-        enable = delta > pointcloud_interval_;
-      }
-
-      if (enable) {
+      if (pointcloud_interval_.is_zero() ||
+          timestamp - last_pointcloud_timestamp_ > pointcloud_interval_) {
         for (auto frame : frameset) {
           if (frame.is<rs2::points>()) {
             HandlePoints(frame.as<rs2::points>(), timestamp, frameset);
             break;
           }
         }
+        last_pointcloud_timestamp_ = timestamp;
       }
     }
 
